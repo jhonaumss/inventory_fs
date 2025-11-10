@@ -6,7 +6,7 @@ let api: AxiosInstance | null = null;
 export const getApi = (): AxiosInstance => {
   if (!api) {
     api = axios.create({
-      baseURL: "http://localhost:8080/api", // your backend URL
+      baseURL: "http://localhost:8080/api",
       headers: {
         "Content-Type": "application/json",
       },

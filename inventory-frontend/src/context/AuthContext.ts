@@ -1,8 +1,7 @@
-// src/context/AuthContext.tsx
+import { jwtDecode } from "jwt-decode";
 import React, { createContext, useContext, useState, useEffect } from "react";
 import type { ReactNode } from "react";
 
-import { jwtDecode } from "jwt-decode";
 
 type DecodedToken = {
   sub: string;
@@ -39,7 +38,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
   useEffect(() => {
     if (token) {
-      try {
+      try {    
         const decoded = jwtDecode<DecodedToken>(token);
         setUser(decoded.sub);
         setRoles(decoded.roles || []);
@@ -70,8 +69,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     login,
     logout,
     isAuthenticated: !!token,
-    user: null,
-    roles: []
+    user,
+    roles
   };
 
   return React.createElement(AuthContext.Provider, { value }, children);

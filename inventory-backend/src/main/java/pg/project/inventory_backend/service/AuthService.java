@@ -1,78 +1,90 @@
 package pg.project.inventory_backend.service;
 
+import lombok.AllArgsConstructor;
 import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.BadCredentialsException;
+import org.springframework.security.authentication.LockedException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import pg.project.inventory_backend.dto.AuthResponse;
 import pg.project.inventory_backend.dto.LoginRequest;
-import pg.project.inventory_backend.dto.RegisterRequest;
-import pg.project.inventory_backend.model.Role;
+import pg.project.inventory_backend.exceptions.PasswordExpiredException;
 import pg.project.inventory_backend.model.User;
-import pg.project.inventory_backend.repository.RoleRepository;
 import pg.project.inventory_backend.repository.UserRepository;
 import pg.project.inventory_backend.security.JwtService;
 
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.time.LocalDateTime;
 
 @Service
+@AllArgsConstructor
 public class AuthService {
-    private final UserRepository userRepository;
-    private final RoleRepository roleRepository;
-    private final PasswordEncoder passwordEncoder;
+
     private final AuthenticationManager authManager;
+    private final UserRepository userRepository;
     private final JwtService jwt;
 
-    public AuthService(UserRepository userRepository, RoleRepository roleRepository, PasswordEncoder passwordEncoder, AuthenticationManager authManager,
-                       JwtService jwt) {
-        this.userRepository = userRepository;
-        this.roleRepository = roleRepository;
-        this.passwordEncoder = passwordEncoder;
-        this.authManager = authManager;
-        this.jwt = jwt;
-    }
-
-    public AuthResponse register(RegisterRequest request) {
-        if (userRepository.existsByUsername(request.getUsername())) {
-            throw new RuntimeException("Username already taken");
-        }
-        if (userRepository.existsByEmail(request.getEmail())) {
-            throw new RuntimeException("Email already registered");
-        }
-
-        User user = new User(
-                request.getUsername(),
-                request.getEmail(),
-                passwordEncoder.encode(request.getPassword())
-        );
-
-        // Default role = ROLE_USER
-        Role userRole = roleRepository.findByName("ROLE_USER")
-                .orElseThrow(() -> new RuntimeException("Default role not found"));
-
-        Set<Role> roles = new HashSet<>();
-        roles.add(userRole);
-        user.setRoles(roles);
-
-        userRepository.save(user);
-
-        String token = jwt.generate(user.getUsername(), List.of(userRole.getName()));
-        return new AuthResponse(token);
-    }
+    private static final int PASSWORD_EXPIRATION_DAYS = 90;
+    private static final int MAX_FAILED_ATTEMPTS = 3;
+    private static final int LOCK_TIME_MINUTES = 15;
 
     public AuthResponse login(LoginRequest req) {
-        Authentication auth = authManager.authenticate(
-                new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
-        );
+        User currentUser = userRepository.findByUsername(req.getUsername())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+        if (isAccountLocked(currentUser)) {
+            throw new LockedException("La cuenta está bloqueada. Intente nuevamente más tarde.");
+        }
+        try {
+            Authentication auth = authManager.authenticate(
+                    new UsernamePasswordAuthenticationToken(req.getUsername(), req.getPassword())
+            );
+            resetFailedAttempts(currentUser);
+            var principal = (org.springframework.security.core.userdetails.User) auth.getPrincipal();
+            var roles = principal.getAuthorities().stream().map(a -> a.getAuthority()).toList();
 
-        // principal is org.springframework.security.core.userdetails.User
-        var principal = (org.springframework.security.core.userdetails.User) auth.getPrincipal();
-        var roles = principal.getAuthorities().stream().map(a -> a.getAuthority()).toList();
+            if (currentUser.getPasswordChangedAt() != null) {
+                LocalDateTime expirationDate = currentUser.getPasswordChangedAt().plusDays(PASSWORD_EXPIRATION_DAYS);
+                if (LocalDateTime.now().isAfter(expirationDate)) {
+                    throw new PasswordExpiredException("La contraseña ha expirado, debe cambiarla.");
+                }
+            }
+            String token = jwt.generate(principal.getUsername(), roles);
+            return new AuthResponse(token, currentUser.isMustChangePassword(), currentUser.getId() );
+        } catch (BadCredentialsException e) {
+            increaseFailedAttempts(currentUser);
+            throw new BadCredentialsException("Credenciales inválidas");
+        }
+    }
+    private void increaseFailedAttempts(User user) {
+        int newAttempts = user.getFailedAttempts() + 1;
+        user.setFailedAttempts(newAttempts);
 
-        String token = jwt.generate(principal.getUsername(), roles);
-        return new AuthResponse(token);
+        if (newAttempts >= MAX_FAILED_ATTEMPTS) {
+            user.setAccountLockedUntil(LocalDateTime.now().plusMinutes(LOCK_TIME_MINUTES));
+        }
+
+        userRepository.save(user);
+    }
+
+    private void resetFailedAttempts(User user) {
+        if (user.getFailedAttempts() > 0 || user.getAccountLockedUntil() != null) {
+            user.setFailedAttempts(0);
+            user.setAccountLockedUntil(null);
+            userRepository.save(user);
+        }
+    }
+
+    private boolean isAccountLocked(User user) {
+        LocalDateTime lockedUntil = user.getAccountLockedUntil();
+        if (lockedUntil == null) return false;
+
+        if (lockedUntil.isAfter(LocalDateTime.now())) {
+            return true;
+        } else {
+            user.setAccountLockedUntil(null);
+            user.setFailedAttempts(0);
+            userRepository.save(user);
+            return false;
+        }
     }
 }

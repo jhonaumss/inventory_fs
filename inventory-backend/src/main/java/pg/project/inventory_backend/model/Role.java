@@ -1,10 +1,16 @@
 package pg.project.inventory_backend.model;
 
 import jakarta.persistence.*;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.Set;
 
+@Setter
+@Getter
 @Entity
+@NoArgsConstructor
 @Table(name = "roles")
 public class Role {
     @Id
@@ -12,41 +18,10 @@ public class Role {
     private Long id;
 
     @Column(nullable = false, unique = true)
-    private String name; // e.g., "ROLE_ADMIN", "ROLE_USER"
-
-    @ManyToMany(mappedBy = "roles")
-    private Set<User> users;
-
-    // --- Constructors ---
-    public Role() {
-    }
+    private String name;
 
     public Role(String name) {
         this.name = name;
     }
 
-    // --- Getters & Setters ---
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-
-    public String getName() {
-        return name;
-    }
-
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public Set<User> getUsers() {
-        return users;
-    }
-
-    public void setUsers(Set<User> users) {
-        this.users = users;
-    }
 }

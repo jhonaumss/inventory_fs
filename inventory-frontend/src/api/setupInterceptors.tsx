@@ -1,10 +1,11 @@
 import { getApi } from "./api";
 
-export const setupInterceptors = (token: string | null, onUnauthorized?: () => void) => {
+export const setupInterceptors = (onUnauthorized?: () => void) => {
   const api = getApi();
 
   api.interceptors.request.use(
     (config) => {
+      const token = localStorage.getItem("token");
       if (token) {
         if (!config.headers) {
           config.headers = {} as import("axios").AxiosRequestHeaders;
@@ -16,7 +17,6 @@ export const setupInterceptors = (token: string | null, onUnauthorized?: () => v
     (error) => Promise.reject(error)
   );
 
-  // Response interceptor
   api.interceptors.response.use(
     (response) => response,
     (error) => {

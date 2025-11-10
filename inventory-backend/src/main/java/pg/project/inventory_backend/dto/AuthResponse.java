@@ -1,13 +1,6 @@
 package pg.project.inventory_backend.dto;
 
-public class AuthResponse {
-    private String token;
+import java.util.UUID;
 
-    public AuthResponse(String token) {
-        this.token = token;
-    }
-
-    public String getToken() {
-        return token;
-    }
+public record AuthResponse(String token, boolean mustChangePassword, UUID id) {
 }

@@ -1,15 +1,15 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { setupInterceptors } from "../api/setupInterceptors";
-import type { RegisterRequest } from "../types/auth";
+import type { UserRequest } from "../types/auth";
 import { FormContainer, Input, MessageOtherAction, ModalBackgroundAndPosition, ModalContainer, PrimaryButton, SecondaryButton, Select, Title, Wrapper } from "../components/StyledComponents";
 
 function RegisterPage() {
-  const [form, setForm] = useState<RegisterRequest>({
+  const [form, setForm] = useState<UserRequest>({
     username: "",
     email: "",
     password: "",
-    role: "Trabajador",
+    role: "ROLE_SALES",
   });
   const [error, setError] = useState<string>("");
   const [showModal, setShowModal] = useState<boolean>(false);
@@ -27,7 +27,7 @@ function RegisterPage() {
     e.preventDefault();
     setError("");
     try {
-      const api = setupInterceptors(null);
+      const api = setupInterceptors();
       await api.post("/auth/register", form);
       setShowModal(true);
     } catch {

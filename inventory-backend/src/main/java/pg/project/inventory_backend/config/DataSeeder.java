@@ -10,18 +10,16 @@ import pg.project.inventory_backend.model.User;
 import pg.project.inventory_backend.repository.RoleRepository;
 import pg.project.inventory_backend.repository.UserRepository;
 
-import java.util.HashSet;
-import java.util.Set;
-
 @Configuration
 public class DataSeeder {
     @Bean
     @Order(1)
     CommandLineRunner seedDB( UserRepository userRepository, PasswordEncoder passwordEncoder, RoleRepository roleRepository) {
         return args -> {
-            if (roleRepository.findByName("ROLE_USER").isEmpty())  roleRepository.save(new Role("ROLE_USER"));
-            if (roleRepository.findByName("ROLE_MANAGER").isEmpty()) roleRepository.save(new Role("ROLE_MANAGER"));
             if (roleRepository.findByName("ROLE_ADMIN").isEmpty()) roleRepository.save(new Role("ROLE_ADMIN"));
+            if (roleRepository.findByName("ROLE_SALES").isEmpty())  roleRepository.save(new Role("ROLE_SALES"));
+            if (roleRepository.findByName("ROLE_MANAGER").isEmpty()) roleRepository.save(new Role("ROLE_MANAGER"));
+
             if (userRepository.findByUsername("admin").isEmpty()) {
                 User user = new User(
                         "admin",
@@ -31,10 +29,8 @@ public class DataSeeder {
                 // Default role = ROLE_USER
                 Role userRole = roleRepository.findByName("ROLE_ADMIN")
                         .orElseThrow(() -> new RuntimeException("Default role not found"));
-
-                Set<Role> roles = new HashSet<>();
-                roles.add(userRole);
-                user.setRoles(roles);
+                user.setRole(userRole);
+                user.setMustChangePassword(false);
                 userRepository.save(user);
             }
         };

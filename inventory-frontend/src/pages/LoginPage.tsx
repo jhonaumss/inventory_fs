@@ -1,13 +1,17 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "../context/AuthContext";
-import { setupInterceptors } from "../api/setupInterceptors";
 import type { AuthResponse, LoginRequest } from "../types/auth";
-import { FormContainer, Input, MessageOtherAction, PrimaryButton, SecondaryButton, Title, Wrapper } from "../components/StyledComponents";
+import { ErrorMessage, FormContainer, Input, PasswordWrapper, PrimaryButton, Title, TogglePassword, Wrapper } from "../components/StyledComponents";
+import { FiEye, FiEyeOff } from "react-icons/fi";
+import { toast } from "react-toastify";
+import axios from "axios";
+
 
 function LoginPage() {
   const [form, setForm] = useState<LoginRequest>({ username: "", password: "" });
   const [error, setError] = useState<string>("");
+  const [showPassword, setShowPassword] = useState<boolean>(false);
   const navigate = useNavigate();
   const { login } = useAuth();
 
@@ -15,37 +19,56 @@ function LoginPage() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError("");
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+  e.preventDefault();
+  setError("");
+  try {
+    const res = await axios.post<AuthResponse>(
+      "http://localhost:8080/api/auth/login",
+      form,
+      { headers: { "Content-Type": "application/json" } }
+    );
 
-    try {
-      const api = setupInterceptors(null);
-      const res = await api.post<AuthResponse>("/auth/login", form);
+    const { token, mustChangePassword, id } = res.data;
+    login(token);
 
-      login(res.data.token);
-      navigate("/dashboard");
-    } catch {
-      setError("Invalid username or password");
+    if (mustChangePassword) {
+      navigate(`/change-password/${id}`);
+    } else {
+      navigate("/");
     }
-  };
-  const handleRegister = (): void => {
-    navigate("/register");
-  };
+  } catch (err: any) {
+    const code = err.response?.data?.code;
 
+    if (code === "ACCOUNT_LOCKED") {
+      toast.error("Tu cuenta está bloqueada. Intenta de nuevo en 15 minutos.");
+    } else if (code === "PASSWORD_EXPIRED") {
+      navigate("/change-password");
+    } else {
+      setError("Usuario o contraseña incorrectos");
+      toast.error("Usuario o contraseña incorrectos");
+    }
+  }
+};
   return (
     <Wrapper>
       <FormContainer>
         <Title>Iniciar Sesión</Title>
         <form onSubmit={handleSubmit}>
+          {error && <ErrorMessage>{error}</ErrorMessage>}
           <Input type="text" name="username" placeholder="Nombre de usuario" value={form.username} onChange={handleChange} />
-          <Input type="password" name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} />
+          <PasswordWrapper>
+            <Input type={showPassword ? "text" : "password"} name="password" placeholder="Contraseña" value={form.password} onChange={handleChange} required />
+            <TogglePassword
+              type="button"
+              onClick={() => setShowPassword((prev) => !prev)}
+              aria-label={showPassword ? "Hide password" : "Show password"}
+            >
+              {showPassword ? <FiEyeOff size={20} /> : <FiEye size={20} />}
+            </TogglePassword>
+          </PasswordWrapper>
           <PrimaryButton type="submit">Ingresar</PrimaryButton>
         </form>
-        {/* <MessageOtherAction>
-          No tienes una cuenta?
-        </MessageOtherAction>
-        <SecondaryButton onClick={handleRegister} >Registrarse</SecondaryButton> */}
       </FormContainer>
     </Wrapper>
   );

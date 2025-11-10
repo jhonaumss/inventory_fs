@@ -1,14 +1,21 @@
-import { Navigate } from "react-router-dom";
-import { useAuth } from "../context/AuthContext";
-import type { JSX } from "react";
+import { Navigate, Outlet } from "react-router-dom";
+import { useContext } from "react";
+import { AuthContext } from "../context/AuthContext";
 
 interface PrivateRouteProps {
-  children: JSX.Element;
+  requiredRole?: string;
 }
 
-function PrivateRoute({ children }: PrivateRouteProps) {
-  const { isAuthenticated } = useAuth();
-  return isAuthenticated ? children : <Navigate to="/login" />;
-}
+export const PrivateRoute = ({ requiredRole }: PrivateRouteProps) => {
+  const { token, roles } = useContext(AuthContext);
+  if (!token) {
+    return <Navigate to="/login" replace />;
+  }
 
-export default PrivateRoute;
+  if (requiredRole && !roles.includes(requiredRole)) {
+    return <Navigate to="/" replace />;
+  }
+
+  return <Outlet />;
+};
+

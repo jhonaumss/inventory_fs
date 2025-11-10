@@ -13,7 +13,7 @@ function DashboardPage() {
   const [items, setItems] = useState<InventoryItem[]>([]);
 
   useEffect(() => {
-    const api = setupInterceptors(token, logout);
+    const api = setupInterceptors(logout);
 
     const fetchItems = async () => {
       try {
