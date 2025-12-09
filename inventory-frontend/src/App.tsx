@@ -11,6 +11,7 @@ import ProductsPage from "./pages/ProductsPage";
 import { AddEditProductPage } from "./pages/AddEditProductPage";
 import ChangePasswordPage from "./pages/ChangePasswordPage";
 import { ToastContainer } from "react-toastify";
+import { MovementPage } from "./pages/MovementPage";
 
 function Layout() {
   const { token, user, roles } = useContext(AuthContext);
@@ -48,6 +49,7 @@ function Layout() {
           <Route path="/products" element={<ProductsPage />} />
           <Route path="/products/new" element={<AddEditProductPage />} />
           <Route path="/products/edit/:id" element={<AddEditProductPage />} />
+          <Route path="/movement" element={<MovementPage />} />
         </Route>
 
         {/* Fallback */}

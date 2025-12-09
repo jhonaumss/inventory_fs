@@ -1,8 +1,11 @@
 package pg.project.inventory_backend.repository;
 
 import org.springframework.data.jpa.repository.JpaRepository;
+import pg.project.inventory_backend.model.Role;
 import pg.project.inventory_backend.model.User;
 
+import java.util.Collection;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -10,4 +13,6 @@ public interface UserRepository extends JpaRepository<User, UUID> {
     Optional<User> findByUsername(String username);
     boolean existsByUsername(String username);
     boolean existsByEmail(String email);
+
+    List<User> findByRoleIn(Collection<Role> roles);
 }

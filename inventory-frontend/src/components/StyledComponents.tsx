@@ -1,3 +1,4 @@
+import { Link } from 'react-router-dom';
 import styled from 'styled-components';
 
 export const Wrapper = styled.div`
@@ -278,5 +279,215 @@ export const IconButton = styled.button`
     width: 18px;
     height: 18px;
     vertical-align: middle;
+  }
+`;
+//Navbar
+export const NavbarContainer = styled.nav`
+  background-color: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 32px;
+  height: 64px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+`;
+
+export const Brand = styled(Link)`
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #111827;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+
+  &:hover {
+    color: #2563eb;
+  }
+`;
+
+export const RightSection = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 16px;
+`;
+
+export const UserLabel = styled.span`
+  color: #374151;
+  font-weight: 500;
+  text-transform: capitalize;
+`;
+
+export const LogoutButton = styled.button`
+  background-color: #f3f4f6;
+  border: none;
+  border-radius: 8px;
+  color: #374151;
+  padding: 8px 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+
+  &:hover {
+    background-color: #e5e7eb;
+  }
+`;
+
+export const NavItem = styled.button`
+  background: none;
+  border: none;
+  color: #000000ff;
+  margin-right: 1rem;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
+  }
+`;
+
+export const CartIconWrapper = styled.button`
+  background: none;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  color: #00000000;
+  margin-right: 1rem;
+`;
+
+export const CartBadge = styled.span`
+  position: absolute;
+  top: -5px;
+  right: -10px;
+  background-color: #ef4444;
+  color: #fff;
+  padding: 2px 6px;
+  border-radius: 999px;
+  font-size: 10px;
+  font-weight: bold;
+`;
+
+
+export const NotificationBellWrapper = styled.button`
+  background: none;
+  border: none;
+  position: relative;
+  cursor: pointer;
+  color: #f9fafb;
+  margin-right: 1rem;
+`;
+
+export const NotificationDot = styled.span`
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 999px;
+`;
+
+export const NotificationDropdown = styled.div`
+  position: absolute;
+  top: 48px;
+  right: 16px;
+  width: 320px;
+  background-color: #ffffff;
+  border-radius: 10px;
+  box-shadow: 0 10px 25px rgba(15, 23, 42, 0.25);
+  padding: 12px 0;
+  z-index: 50;
+`;
+
+export const NotificationHeader = styled.div`
+  padding: 0 16px 8px;
+  border-bottom: 1px solid #e5e7eb;
+  font-weight: 600;
+  font-size: 0.9rem;
+`;
+
+export const NotificationList = styled.div`
+  max-height: 260px;
+  overflow-y: auto;
+`;
+
+export const NotificationItem = styled.div`
+  display: flex;
+  align-items: center;
+  padding: 10px 16px;
+  border-bottom: 1px solid #f3f4f6;
+  font-size: 0.85rem;
+  gap: 8px;
+
+  &:last-child {
+    border-bottom: none;
+  }
+`;
+
+export const NotificationIconBadge = styled.div<{ type: "WARNING" | "CRITICAL" | "INFO" }>`
+  width: 22px;
+  height: 22px;
+  border-radius: 999px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 12px;
+  ${({ type }) => {
+    if (type === "CRITICAL") {
+      return `background-color: #fee2e2; color: #b91c1c;`;
+    }
+    if (type === "WARNING") {
+      return `background-color: #fef3c7; color: #92400e;`;
+    }
+    return `background-color: #e0f2fe; color: #0369a1;`;
+  }}
+`;
+
+export const NotificationTextWrapper = styled.div`
+  flex: 1;
+`;
+
+export const NotificationTitle = styled.div`
+  font-weight: 600;
+  margin-bottom: 2px;
+`;
+
+export const NotificationMessage = styled.div`
+  color: #4b5563;
+`;
+
+export const NotificationTime = styled.div`
+  margin-top: 2px;
+  font-size: 0.75rem;
+  color: #9ca3af;
+`;
+
+export const NotificationDeleteButton = styled.button`
+  background: none;
+  border: none;
+  color: #9ca3af;
+  cursor: pointer;
+  font-size: 0.8rem;
+  margin-left: 6px;
+
+  &:hover {
+    color: #ef4444;
+  }
+`;
+
+export const NotificationFooter = styled.div`
+  padding: 8px 16px 4px;
+  text-align: center;
+  border-top: 1px solid #e5e7eb;
+  font-size: 0.8rem;
+`;
+
+export const NotificationFooterLink = styled.button`
+  background: none;
+  border: none;
+  color: #2563eb;
+  cursor: pointer;
+  &:hover {
+    text-decoration: underline;
   }
 `;
